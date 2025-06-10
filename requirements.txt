@@ -4,3 +4,5 @@ tensorflow
 pydantic
 python-multipart
 numpy
+joblib
+scikit-learn
