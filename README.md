@@ -1,7 +1,5 @@
 # 🧠 GoalPocket ML API
-
-API ini digunakan untuk memprediksi saldo masa depan berdasarkan 7 minggu terakhir data keuangan user.
-
+REST API untuk aplikasi GoalPocket – platform perencanaan dan pelacakan keuangan. API ini juga terintegrasi dengan Machine Learning API untuk memprediksi saldo pengguna berdasarkan tren keuangan mereka.
 ---
 
 ## 🚀 Endpoint
@@ -9,20 +7,28 @@ API ini digunakan untuk memprediksi saldo masa depan berdasarkan 7 minggu terakh
 ### `GET /`
 Cek apakah API aktif.
 
-### POST /predict
-Melakukan prediksi saldo masa depan.
+🚀 Endpoint Utama
+✅ 1. Predict Saldo (ML Integration)
+URL: POST /ml/predict-saldo
+
+Deskripsi: Mengirim data historis keuangan user ke ML API dan mengembalikan prediksi saldo selanjutnya.
 
 headers: application/json
 
-✅ Request Body:
+📥 Request Body
 ```json
 {
   "data": [
     [asset, liability, income, expenses],
     [asset, liability, income, expenses],
-    ...
+    [asset, liability, income, expenses],
+    [asset, liability, income, expenses],
+    [asset, liability, income, expenses],
+    [asset, liability, income, expenses],
+    [asset, liability, income, expenses]
   ]
 }
+
 ```
 contoh:
 ```json
@@ -50,12 +56,23 @@ response:
 }
 ```
 
-### 📝 Teknologi
-FastAPI
+### 📦 Teknologi
+Node.js (Express)
 
-TensorFlow/Keras
+PostgreSQL (via Prisma)
 
-Model: saldo_prediction_model.h5
+Axios (untuk koneksi ke ML API)
 
+ML API (TensorFlow Model, deploy di Railway)
 
+# 🌐 Public ML API yang digunakan:
+https://ml-api-production-6fd5.up.railway.app/predict
 
+Endpoint ini bersifat publik, tapi frontend harus mengakses melalui backend (/ml/predict-saldo) untuk keamanan dan fleksibilitas.
+
+# 🧪 Testing
+Kamu bisa menggunakan Postman untuk mencoba:
+
+POST /ml/predict-saldo dengan body 7x4 seperti contoh
+
+Melihat response prediction berupa array saldo prediksi
