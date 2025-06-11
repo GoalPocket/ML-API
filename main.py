@@ -81,6 +81,10 @@ async def predict(request: Request):
                 raise HTTPException(status_code=400, detail="Input harus berisi tepat 6 fitur.")
             data = np.array([[input_data.data] * 14], dtype=np.float32)  # (1, 14, 6)
 
+        # 🚨 Validasi jika seluruh input bernilai 0
+        if np.all(data == 0):
+            raise HTTPException(status_code=400, detail="Input tidak boleh seluruhnya bernilai 0.")
+
         logging.info(f"🔎 Shape input ke model: {data.shape}")
         prediction = model.predict(data)
 
@@ -90,9 +94,14 @@ async def predict(request: Request):
             formatted = [format_rupiah(val) for val in prediction_rescaled[0]]
             return {"prediction": formatted}
         else:
-            # Jika tidak ada scaler, tampilkan raw output
-            return {"prediction": prediction.tolist(), "note": "Hasil belum di-inverse karena scaler_y.pkl tidak ditemukan."}
+            return {
+                "prediction": prediction.tolist(),
+                "note": "Hasil belum di-inverse karena scaler_y.pkl tidak ditemukan."
+            }
 
+    except HTTPException as http_exc:
+        # Penting! Jangan ubah status code error validasi
+        raise http_exc
     except Exception as e:
         logging.error(f"❌ Error saat prediksi: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail="Terjadi kesalahan internal pada server.")
