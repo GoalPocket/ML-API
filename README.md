@@ -1,66 +1,95 @@
-# 🤖 GoalPocket - ML API
-Machine Learning API untuk prediksi saldo keuangan berdasarkan histori aset, kewajiban, pemasukan, dan pengeluaran pengguna dalam 7 hari terakhir.
+# 🧠 ML-API REPO – GoalPocket ML Prediction
+### 📡 Deskripsi
+REST API berbasis FastAPI untuk memprediksi saldo keuangan pengguna berdasarkan histori 6 fitur: asset, liability, income, expenses, savings, loan.
 
-### 📂 Struktur Proyek
-File / Folder	Deskripsi
-final_capstone.ipynb	Notebook utama: proses pengolahan data, pelatihan model, evaluasi, dan ekspor
-model/	Folder (disarankan) tempat menyimpan model .h5 hasil pelatihan
-app.py	File Flask API untuk menerima input data dan mengembalikan prediksi
-requirements.txt	Daftar library yang dibutuhkan untuk menjalankan proyek ML ini
+Model ML dilatih dengan TensorFlow dan diekspor sebagai .h5 file, lalu digunakan untuk inferensi di endpoint /predict.
 
-### 🧠 ML Pipeline
-Pengumpulan Data:
+## 🗂 Struktur Utama
 
-Dataset keuangan dalam format .csv diunduh dari Google Drive dan diekstrak otomatis.
+File/Folder	Deskripsi
 
-Setiap file CSV merepresentasikan satu pengguna (user_id).
+main.py	Endpoint FastAPI untuk prediksi saldo
 
-Preprocessing:
+scaler_y.pkl	Scaler untuk inverse prediksi hasil model
 
-Fitur yang digunakan: asset, liability, income, expenses.
+saldo_prediction_model_2.h5	Model hasil pelatihan
 
-Target prediksi: saldo = asset - liability.
+requirements.txt	Daftar dependency Python
 
-Pelatihan Model:
+Dockerfile	Konfigurasi Docker container
 
-Model Neural Network dibangun menggunakan TensorFlow + Keras.
+### 🚀 Endpoint Prediksi
+URL: /predict
+Method: POST
 
-Digunakan StandardScaler untuk normalisasi fitur.
-
-Evaluasi dengan MAE dan R² Score.
-
-Export Model:
-
-Model disimpan dalam format .h5 untuk diintegrasikan ke backend.
-
-## 🚀 Endpoint Prediksi (via Flask)
-POST /predict
-
-### 📥 Request Body (JSON)
+Format Request 1: 6 fitur (digandakan 14x)
+```json
+{
+  "data": [500000000, 400000000, 10000000, 20000000, 1000000, 5000000]
+}
+```
+Format Request 2: 14 baris historis
 ```json
 {
   "data": [
-    [asset, liability, income, expenses],
+    [500000000, 400000000, 10000000, 20000000, 1000000, 5000000],
     ...
   ]
+}
+```
+
+### 🔁 Response
+```json
+{
+  "prediction": [
+    "Rp120.000.000",
+    "Rp125.000.000",
+    ...
+  ]
+}
+```
+Jika scaler tidak tersedia:
+```json
+{
+  "prediction": [[1.4415650367736816]],
+  "note": "Hasil belum di-inverse karena scaler_y.pkl tidak ditemukan."
 }
 
 ```
 
-contoh :
-```json
-{
-  "data": [
-    [500000000, 400000000, 10000000, 20000000],
-    ...
-  ]
-}
+### 🐳 Dockerfile
+FROM python:3.9-slim
 
-```
+WORKDIR /app
 
-### 🧪 Catatan Tambahan
-Model dilatih menggunakan data pengguna anonim dari berbagai sesi finansial.
+COPY requirements.txt .
 
-Model ini hanya memprediksi saldo berdasarkan tren histori 7 hari terakhir, dan bukan untuk saran keuangan aktual.
+RUN pip install --no-cache-dir -r requirements.txt
 
-Untuk deployment, API ini terhubung ke backend utama GoalPocket sebagai middleware proxy.
+COPY . .
+
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+
+### 📦 Requirements
+fastapi
+
+uvicorn
+
+tensorflow
+
+pydantic
+
+python-multipart
+
+numpy
+
+joblib
+
+scikit-learn
+
+# ⚠️ Catatan
+Model menggunakan custom loss function: MSE.
+
+Jika scaler_y.pkl tidak tersedia, hasil prediksi tidak akan diubah ke format Rupiah.
+
+Endpoint ini hanya memberikan estimasi saldo, bukan saran finansial resmi.
